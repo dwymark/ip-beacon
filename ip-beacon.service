@@ -1,0 +1,31 @@
+[Unit]
+Description=IP beacon (broadcast hostname + IP over UDP for headless discovery)
+Documentation=https://github.com/dwymark/ip-beacon
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/ip-beacon.py
+Environment=BEACON_PORT=55555
+Environment=BEACON_INTERVAL=5
+Restart=always
+RestartSec=3
+
+# --- Hardening (runs as an ephemeral unprivileged user; needs no root) ---
+DynamicUser=yes
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictAddressFamilies=AF_INET AF_INET6
+RestrictNamespaces=yes
+LockPersonality=yes
+SystemCallFilter=@system-service
+SystemCallErrorNumber=EPERM
+
+[Install]
+WantedBy=multi-user.target
