@@ -1,8 +1,23 @@
 #!/usr/bin/env bash
-# Install the ip-beacon service. Run with root (sudo ./install.sh).
+# Install the ip-beacon service, locally or on a remote Linux host.
+#
+#   sudo ./install.sh              install on this machine
+#   ./install.sh [user@]<host>     copy this repo to <host> over ssh and
+#                                   install + activate there (sudo on the
+#                                   remote host, via ssh -t)
 set -euo pipefail
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+if [[ $# -gt 0 ]]; then
+    target="$1"
+    remote_dir="$(ssh "${target}" mktemp -d)"
+    echo "[ip-beacon] copying repo -> ${target}:${remote_dir}"
+    scp -q "${here}/ip-beacon.py" "${here}/ip-beacon.service" "${here}/install.sh" "${target}:${remote_dir}/"
+    echo "[ip-beacon] running installer on ${target}"
+    ssh -t "${target}" "sudo bash '${remote_dir}/install.sh' && rm -rf '${remote_dir}'"
+    exit 0
+fi
 
 if [[ "${EUID}" -ne 0 ]]; then
     echo "This installer needs root. Re-run: sudo $0" >&2

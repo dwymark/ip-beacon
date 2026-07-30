@@ -15,7 +15,10 @@ address. `ip-beacon.py` is the sender daemon; `listener.py` is the receiver.
 - `ip-beacon.service` — systemd unit for the sender. Runs as an ephemeral
   `DynamicUser`, starts on boot, restarts on failure.
 - `install.sh` — installs the daemon and unit, enables the service, and opens
-  `55555/udp` when `ufw` is active. Needs root.
+  `55555/udp` when `ufw` is active. Needs root. Run locally with no arguments
+  (`sudo ./install.sh`), or point it at a remote Linux host with
+  `./install.sh [user@]<ip>`, which copies the repo over ssh/scp and runs the
+  installer there via `sudo` (no root needed locally in that mode).
 
 ## Configuration
 
@@ -30,13 +33,16 @@ Both scripts read these from the environment; the unit sets them via
 ## Install and verify (sender host)
 
 ```sh
-sudo ./install.sh
+sudo ./install.sh                       # locally, or:
+./install.sh user@sender-host           # remotely, over ssh
+
 systemctl --no-pager --full status ip-beacon.service   # expect: active (running)
 timeout 8 python3 listener.py                          # expect a beacon line within ~6s
 ```
 
 The sender receives its own broadcast, so the listener self-test needs no second
-machine.
+machine. Run the status/listener checks on the sender host itself (ssh in, if
+installed remotely).
 
 ## Running the listener
 
