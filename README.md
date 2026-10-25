@@ -49,8 +49,16 @@ with no second machine.
 changes. Run it on whatever machine you watch from:
 
 ```sh
-python3 listener.py
+python3 listener.py                 # continuous
+python3 listener.py --once          # first beacon, then exit
+python3 listener.py --once --name my-box
+python3 listener.py --once --ip 192.168.1.42
 ```
+
+`--once` is useful for scripted discovery: it prints the first matching beacon
+and exits 0. Combine `--name` and/or `--ip` to accept only beacons from a
+particular host, ignoring unrelated cross chatter on the LAN. Ctrl-C before a
+match exits 1.
 
 Run it natively on the host, though, not inside WSL2. In mirrored networking mode
 a bound socket never receives externally-originated LAN broadcasts, so the
