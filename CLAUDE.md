@@ -13,14 +13,22 @@ address. `ip-beacon.py` is the sender daemon; `listener.py` is the receiver.
 - `listener.py` — receiver, stdlib only. Binds `BEACON_PORT` and prints one line
   per host, re-printed only when that host's IP changes. `--once` (with optional
   `--name`/`--ip` filters) prints the first matching beacon and exits; useful for
-  scripted discovery where you want to ignore cross chatter.
+  scripted discovery where you want to ignore cross chatter. `--hosts-dir` with
+  `--map HOST=NAME` keeps a dnsmasq hosts file answering NAME with the source
+  address of HOST's beacons, until `--expire` seconds (default 120) pass without
+  one.
+- `ip-beacon-dns.service` — systemd unit for that DNS mode, as the static
+  `ip-beacon` user, writing `/var/lib/ip-beacon-dns`, which dnsmasq reads.
 - `ip-beacon.service` — systemd unit for the sender. Runs as an ephemeral
   `DynamicUser`, starts on boot, restarts on failure.
 - `install.sh` — installs the daemon and unit, enables the service, and opens
   `55555/udp` when `ufw` is active. Needs root. Run locally with no arguments
   (`sudo ./install.sh`), or point it at a remote Linux host with
   `./install.sh [user@]<ip>`, which copies the repo over ssh/scp and runs the
-  installer there via `sudo` (no root needed locally in that mode).
+  installer there via `sudo` (no root needed locally in that mode). With
+  `--dns HOST=NAME --upstream IP[,IP]` it also installs dnsmasq and the DNS unit;
+  the upstream servers are required, since the host's own resolver may forward
+  back to it.
 
 ## Configuration
 

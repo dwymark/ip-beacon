@@ -1,0 +1,37 @@
+[Unit]
+Description=IP beacon DNS (dnsmasq hosts records for hosts whose beacons are arriving)
+Documentation=https://github.com/dwymark/ip-beacon
+After=network-online.target
+Wants=network-online.target
+Before=dnsmasq.service
+
+[Service]
+Type=simple
+# BEACON_DNS_MAP=HOST=NAME[,HOST=NAME...], written by install.sh --dns.
+EnvironmentFile=/etc/default/ip-beacon-dns
+ExecStart=/usr/local/bin/ip-beacon-listener.py --hosts-dir /var/lib/ip-beacon-dns --map ${BEACON_DNS_MAP}
+# A stopped or crashed listener leaves no records behind for dnsmasq to keep answering.
+ExecStopPost=+/usr/bin/rm -f /var/lib/ip-beacon-dns/ip-beacon.hosts
+Environment=BEACON_PORT=55555
+Restart=always
+RestartSec=3
+
+# dnsmasq reads the state directory, which DynamicUser would make private to this unit.
+User=ip-beacon
+StateDirectory=ip-beacon-dns
+StateDirectoryMode=0755
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictAddressFamilies=AF_INET AF_INET6
+RestrictNamespaces=yes
+LockPersonality=yes
+SystemCallFilter=@system-service
+SystemCallErrorNumber=EPERM
+
+[Install]
+WantedBy=multi-user.target

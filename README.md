@@ -65,8 +65,29 @@ a bound socket never receives externally-originated LAN broadcasts, so the
 listener binds cleanly and then sits silent. On Windows that means the Windows
 Python, not the one in your WSL distro.
 
+Sending works from WSL2 in mirrored mode, so the sender can run there as an
+ordinary systemd unit.
+
 The script is stdlib-only and needs no install. A plain `nc -ul 55555` works too,
 if you would rather not run it.
+
+## DNS
+
+The listener can also make a host reachable by name. Installed with `--dns`, a
+box such as an always-on Pi runs dnsmasq and a listener that answers a name with
+the address a host's beacons come from:
+
+```sh
+./install.sh --dns my-laptop=laptop.example.com --upstream 1.1.1.1,9.9.9.9 user@pi
+```
+
+Each `HOST=NAME` pair maps a beacon's hostname, matched case-insensitively, to a
+name. The record lasts while beacons keep arriving and two minutes after the last
+one, so when the host leaves the network the name falls through to the upstream
+servers and its public answer, if it has one. Every other query goes upstream
+too. Point devices at the box as their DNS server, or the router at it as its
+upstream. Beacons are unauthenticated: anyone on the LAN can claim a hostname, so
+use this to route to a service whose TLS certificate proves who answers.
 
 ## Configuration
 
