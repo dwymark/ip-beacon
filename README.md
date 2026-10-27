@@ -9,8 +9,10 @@ network can listen and learn where it went.
 
 ## How it works
 
-The sender emits one small JSON datagram to the broadcast address on UDP port
-55555:
+The sender emits one small JSON datagram on UDP port 55555 to the broadcast
+address of each interface that is up, such as `192.168.1.255`. The limited
+broadcast address, `255.255.255.255`, would follow the default route, which a VPN
+takes off the LAN.
 
 ```json
 {"beacon":"ip-beacon","hostname":"<name>","ip":"<primary-ip>","ts":<epoch>}
@@ -65,8 +67,11 @@ a bound socket never receives externally-originated LAN broadcasts, so the
 listener binds cleanly and then sits silent. On Windows that means the Windows
 Python, not the one in your WSL distro.
 
-Sending works from WSL2 in mirrored mode, so the sender can run there as an
-ordinary systemd unit.
+Sending works from WSL2 in mirrored mode while no VPN is connected. With Mullvad
+connected, UDP from WSL2 to the LAN is dropped although TCP passes, so on such a
+laptop run the sender on Windows instead: `install-windows.ps1` copies it to
+`%LOCALAPPDATA%\ip-beacon` and registers a logon task for the user, with no
+elevation.
 
 The script is stdlib-only and needs no install. A plain `nc -ul 55555` works too,
 if you would rather not run it.
@@ -98,7 +103,7 @@ Both scripts read these from the environment; the systemd unit sets them with
 |---|---|---|
 | `BEACON_PORT` | `55555` | UDP port to broadcast and listen on |
 | `BEACON_INTERVAL` | `5` | Seconds between broadcasts (sender) |
-| `BEACON_ADDR` | `255.255.255.255` | Destination broadcast address (sender) |
+| `BEACON_ADDR` | every interface's broadcast address | One destination address instead (sender; required on Windows) |
 
 To change the port or interval after install, edit the `Environment=` lines in
 /etc/systemd/system/ip-beacon.service, then `systemctl daemon-reload &&

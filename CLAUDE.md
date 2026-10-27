@@ -7,8 +7,9 @@ address. `ip-beacon.py` is the sender daemon; `listener.py` is the receiver.
 ## Layout
 
 - `ip-beacon.py` — sender daemon, stdlib only. Every `BEACON_INTERVAL` seconds
-  it re-reads the primary outbound IPv4 and broadcasts one JSON datagram to
-  `BEACON_ADDR` on `BEACON_PORT`:
+  it re-reads the primary outbound IPv4 and broadcasts one JSON datagram on
+  `BEACON_PORT` to the broadcast address of each interface that is up, has a
+  carrier and is not a /32, read through Linux ioctls, or to `BEACON_ADDR` alone:
   `{"beacon":"ip-beacon","hostname":...,"ip":...,"ts":...}`.
 - `listener.py` — receiver, stdlib only. Binds `BEACON_PORT` and prints one line
   per host, re-printed only when that host's IP changes. `--once` (with optional
@@ -21,6 +22,8 @@ address. `ip-beacon.py` is the sender daemon; `listener.py` is the receiver.
   `ip-beacon` user, writing `/var/lib/ip-beacon-dns`, which dnsmasq reads.
 - `ip-beacon.service` — systemd unit for the sender. Runs as an ephemeral
   `DynamicUser`, starts on boot, restarts on failure.
+- `install-windows.ps1` — runs the sender as a Windows logon task, for a laptop
+  whose WSL2 cannot send UDP to the LAN while Mullvad is connected.
 - `install.sh` — installs the daemon and unit, enables the service, and opens
   `55555/udp` when `ufw` is active. Needs root. Run locally with no arguments
   (`sudo ./install.sh`), or point it at a remote Linux host with
@@ -37,8 +40,8 @@ Both scripts read these from the environment; the unit sets them via
 
 - `BEACON_PORT` — UDP port. Default `55555`.
 - `BEACON_INTERVAL` — seconds between broadcasts (sender only). Default `5`.
-- `BEACON_ADDR` — destination broadcast address (sender only). Default
-  `255.255.255.255`.
+- `BEACON_ADDR` — one destination address instead of every interface's
+  broadcast address (sender only). Required on Windows.
 
 ## Install and verify (sender host)
 
