@@ -63,7 +63,9 @@ install -m 0644 "${here}/ip-beacon.service" /etc/systemd/system/ip-beacon.servic
 
 echo "[ip-beacon] reloading systemd and enabling service"
 systemctl daemon-reload
-systemctl enable --now ip-beacon.service
+systemctl enable ip-beacon.service
+# restart, not --now, so that an update replaces a running sender
+systemctl restart ip-beacon.service
 ufw_allow 55555/udp
 
 if [[ -n "${dns_map}" ]]; then
