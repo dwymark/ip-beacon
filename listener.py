@@ -56,6 +56,8 @@ def main(args: argparse.Namespace) -> int:
         data, addr = sock.recvfrom(65535)
         try:
             m = json.loads(data.decode("utf-8"))
+            if not isinstance(m, dict):
+                raise ValueError("not a JSON object")
         except (ValueError, UnicodeDecodeError):
             if not args.once:
                 print(f"{addr[0]}: non-beacon datagram: {data!r}", flush=True)
