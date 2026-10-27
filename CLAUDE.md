@@ -11,7 +11,9 @@ address. `ip-beacon.py` is the sender daemon; `listener.py` is the receiver.
   `BEACON_ADDR` on `BEACON_PORT`:
   `{"beacon":"ip-beacon","hostname":...,"ip":...,"ts":...}`.
 - `listener.py` — receiver, stdlib only. Binds `BEACON_PORT` and prints one line
-  per host, re-printed only when that host's IP changes.
+  per host, re-printed only when that host's IP changes. `--once` (with optional
+  `--name`/`--ip` filters) prints the first matching beacon and exits; useful for
+  scripted discovery where you want to ignore cross chatter.
 - `ip-beacon.service` — systemd unit for the sender. Runs as an ephemeral
   `DynamicUser`, starts on boot, restarts on failure.
 - `install.sh` — installs the daemon and unit, enables the service, and opens
@@ -38,6 +40,8 @@ sudo ./install.sh                       # locally, or:
 
 systemctl --no-pager --full status ip-beacon.service   # expect: active (running)
 timeout 8 python3 listener.py                          # expect a beacon line within ~6s
+python3 listener.py --once --name <hostname>           # one-shot, filter by name
+python3 listener.py --once --ip <ip>                   # one-shot, filter by IP
 ```
 
 The sender receives its own broadcast, so the listener self-test needs no second
