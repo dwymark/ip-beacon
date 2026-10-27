@@ -42,7 +42,12 @@ def broadcast_addrs(sock: socket.socket) -> list[str]:
     if fcntl is None:
         return ["255.255.255.255"]
     found = []
-    for _, name in socket.if_nameindex():
+    # /sys rather than socket.if_nameindex(), whose netlink socket the unit's RestrictAddressFamilies refuses.
+    try:
+        names = os.listdir("/sys/class/net")
+    except OSError:
+        names = []
+    for name in names:
         request = struct.pack("256s", name.encode()[:15])
         try:
             flags = struct.unpack("H", fcntl.ioctl(sock, SIOCGIFFLAGS, request)[16:18])[0]
